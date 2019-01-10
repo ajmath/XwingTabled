@@ -174,6 +174,7 @@ export class XwingStateService {
     this.shuffleDamageDeck();
     this.initialized = true;
     this.snapshot();
+    this.prefetchSquadImages();
   }
 
   async shuffleDamageDeck() {
@@ -279,5 +280,22 @@ export class XwingStateService {
     } else {
       return false;
     }
+  }
+
+  async prefetchSquadImages() {
+    const images = [];
+    const appendImg = (i) => i && !images.includes(i) && images.push(i);
+    for (const pilot of this.squadron.pilots) {
+      appendImg(pilot.pilot.image);
+      for (const upgrade of pilot.upgrades) {
+        for (const side of upgrade.sides) {
+          appendImg(side.image);
+        }
+      }
+    }
+    await Promise.all(images.map(async (url) => {
+      return fetch(url).catch((e) => console.warn('Unable to fetch url', url));
+    }));
+    console.log(`Finished prefetching ${images.length} squad images`);
   }
 }
