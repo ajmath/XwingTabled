@@ -130,7 +130,12 @@ export class MainPage implements OnInit {
     console.log("Restoring...");
     await this.state.restoreFromDisk();
     console.log("Restored!");
-    this.toastUndo(this.state.getLastSnapshotTime());
+
+    const lastSnapshotTime = this.state.getLastSnapshotTime();
+    if (lastSnapshotTime) {
+      this.toastUndo(lastSnapshotTime);
+    }
+
     if (!this.state.squadron) {
       this.presentXwsModal();
     }

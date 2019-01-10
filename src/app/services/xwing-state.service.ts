@@ -54,7 +54,8 @@ export class XwingStateService {
   }
 
   getLastSnapshotTime() {
-    return this.snapshots[this.snapshots.length - 1].time;
+    const lastSnapshot = this.snapshots[this.snapshots.length - 1];
+    return lastSnapshot ? lastSnapshot.time : undefined;
   }
 
   resetSquadron() {
