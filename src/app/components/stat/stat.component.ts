@@ -7,12 +7,12 @@ import { Component, OnInit, Input } from '@angular/core';
 })
 export class StatComponent implements OnInit {
   @Input() stat: any;
-  @Input() orientation: string = "horizontal";
-  @Input() bonus: boolean = false;
+  @Input() orientation = 'horizontal';
+  @Input() bonus = false;
   constructor() { }
 
   ngOnInit() {
-    if (this.stat.type == "attack") {
+    if (this.stat.type === 'attack') {
       this.stat.icon = this.stat.arc;
     }
   }

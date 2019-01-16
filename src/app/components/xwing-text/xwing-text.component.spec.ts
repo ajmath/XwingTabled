@@ -29,16 +29,16 @@ describe('XwingTextComponent', () => {
 
   it('should replace [# [Noun]] with # [Noun]', () => {
     expect(component.stripNumberBrackets('Card has [2 [Bank Left]] and [2 [Bank Right]]')).toEqual(
-      "Card has 2 [Bank Left] and 2 [Bank Right]"
+      'Card has 2 [Bank Left] and 2 [Bank Right]'
     );
   });
 
   it('should mangle text to icons', () => {
     expect(component.mangle('[Hit] [Hit]')).toEqual(
-      "<i class='xwing-miniatures-font xwing-miniatures-font-hit'></i> <i class='xwing-miniatures-font xwing-miniatures-font-hit'></i>"
+      '<i class=\'xwing-miniatures-font xwing-miniatures-font-hit\'></i> <i class=\'xwing-miniatures-font xwing-miniatures-font-hit\'></i>'
     );
     expect(component.mangle('2 [Hit]')).toEqual(
-      "2 <i class='xwing-miniatures-font xwing-miniatures-font-hit'></i>" 
+      '2 <i class=\'xwing-miniatures-font xwing-miniatures-font-hit\'></i>'
     );
   });
 });

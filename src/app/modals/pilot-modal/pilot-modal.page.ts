@@ -11,7 +11,7 @@ import { DamagePopoverComponent } from '../../popovers/damage-popover/damage-pop
 import { DamageCardSelectComponent } from '../../popovers/damage-card-select/damage-card-select.component';
 import { ModalController } from '@ionic/angular';
 import { LayoutService } from '../../services/layout.service';
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute } from '@angular/router';
 import { faBars } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
@@ -28,11 +28,11 @@ export class PilotModalPage implements OnInit {
   charges: any = null;
   force: any = null;
   faBars = faBars;
-  expanded: boolean = false;
+  expanded = false;
 
   maneuverChart: any[] = new Array(7);
 
-  constructor(public toastController: ToastController, 
+  constructor(public toastController: ToastController,
               private popoverController: PopoverController,
               private dataService: XwingDataService,
               public state: XwingStateService,
@@ -65,8 +65,8 @@ export class PilotModalPage implements OnInit {
     toast.present();
   }
 
-  recycleAvailable() : boolean {
-    let hull = this.pilot.stats.find((stat) => stat.type == 'hull');
+  recycleAvailable(): boolean {
+    const hull = this.pilot.stats.find((stat) => stat.type === 'hull');
     return hull.remaining <= 0 && this.pilot.damagecards.length > 0;
   }
 
@@ -76,23 +76,23 @@ export class PilotModalPage implements OnInit {
         card.exposed = false;
         this.state.discard(card);
       }
-    )
+    );
     this.pilot.damagecards = [ ];
   }
 
   async assignIdNumber() {
-    let alert = await this.alertController.create({
+    const alert = await this.alertController.create({
       header: 'Assign ID',
       message: 'Which ID/Lock token number should this pilot have?',
       inputs: [
         {
           name: 'id',
-          type: "number"
+          type: 'number'
         }
       ],
       buttons: [
         { text: 'OK',
-          handler: (data) => { 
+          handler: (data) => {
             this.ngZone.run(
               () => {
                 if (data.id > 0) {
@@ -101,7 +101,7 @@ export class PilotModalPage implements OnInit {
                   this.pilot.idNumber = -1;
                 }
               }
-            )
+            );
           }
         },
         { text: 'Cancel',
@@ -109,39 +109,39 @@ export class PilotModalPage implements OnInit {
           cssClass: 'secondary' }
       ]
     });
-    return await alert.present(); 
+    return await alert.present();
   }
 
   async thaneKyrell() {
     const popover = await this.popoverController.create({
       component: DamageCardSelectComponent,
       componentProps: {
-        title: "Thane Kyrell",
+        title: 'Thane Kyrell',
         cards: this.pilot.damagecards.filter((card) => !card.exposed),
         callback: (card) => {
           card.exposed = true;
         }
       }
     });
-    await popover.present(); 
+    await popover.present();
   }
 
   async maarekStele() {
-    let cards = [ ];
+    const cards = [ ];
     for (let i = 0; i < 3 && this.state.damagedeck.length; i++) {
       cards.push(this.state.draw());
     }
     const popover = await this.popoverController.create({
       component: DamageCardSelectComponent,
       componentProps: {
-        title: "Maarek Stele",
+        title: 'Maarek Stele',
         cards: cards,
         callback: (card) => {
           card.exposed = true;
           this.pilot.damagecards.push(card);
           cards.forEach(
             (remaining) => {
-              if (remaining != card) {
+              if (remaining !== card) {
                 this.state.discard(remaining);
               }
             }
@@ -149,37 +149,37 @@ export class PilotModalPage implements OnInit {
         }
       }
     });
-    await popover.present(); 
+    await popover.present();
   }
 
   async assignCrit() {
-    let cards = [ ];
+    const cards = [ ];
     // Fill cards with unique titles from damage deck
     this.state.damagedeck.forEach(
       (draw) => {
-        let found = cards.find(card => draw.title == card.title);
+        const found = cards.find(card => draw.title === card.title);
         if (!found) {
           cards.push(draw);
         }
       }
     );
 
-    cards.sort((a, b) => { return a.title.localeCompare(b.title) });
+    cards.sort((a, b) => a.title.localeCompare(b.title));
 
     const popover = await this.popoverController.create({
       component: DamageCardSelectComponent,
       componentProps: {
-        title: "Assign Crit",
+        title: 'Assign Crit',
         cards: cards,
         callback: (card) => {
           card.exposed = true;
           this.pilot.damagecards.push(card);
-          let index = this.state.damagedeck.indexOf(card);
+          const index = this.state.damagedeck.indexOf(card);
           this.state.damagedeck.splice(index, 1);
        }
       }
     });
-    await popover.present();  
+    await popover.present();
   }
 
   async showConditionMenu() {
@@ -203,13 +203,13 @@ export class PilotModalPage implements OnInit {
       (pilot) => {
         this.state.squadron.pointsDestroyed += pilot.pointsDestroyed;
       }
-    )
-    if (this.state.squadron.pointsDestroyed == this.state.squadron.points) {
+    );
+    if (this.state.squadron.pointsDestroyed === this.state.squadron.points) {
       this.state.squadron.pointsDestroyed = 200;
     }
   }
 
-  hitCardAvailable() : boolean {
+  hitCardAvailable(): boolean {
     let result = false;
     this.pilot.damagecards.forEach(
       (card) => {
@@ -217,13 +217,13 @@ export class PilotModalPage implements OnInit {
           result = true;
         }
       }
-    )
+    );
     return result;
   }
 
   mutateCard(card: any) {
-    let cardCopy = JSON.parse(JSON.stringify(card));
-    let index = this.pilot.damagecards.indexOf(card);
+    const cardCopy = JSON.parse(JSON.stringify(card));
+    const index = this.pilot.damagecards.indexOf(card);
     if (index > -1) {
       this.pilot.damagecards.splice(index, 1);
       this.pilot.damagecards.splice(index, 0, cardCopy);
@@ -233,14 +233,14 @@ export class PilotModalPage implements OnInit {
   exposeRandomHit() {
     this.ngZone.run(
       async () => {
-        let hitIndexes: number[] = [];
+        const hitIndexes: number[] = [];
         for (let i = 0; i < this.pilot.damagecards.length; i++) {
           if (!this.pilot.damagecards[i].exposed) {
             hitIndexes.push(i);
           }
         }
-        let index = hitIndexes[Math.floor(Math.random() * Math.floor(hitIndexes.length))];
-        let card = this.pilot.damagecards[index];
+        const index = hitIndexes[Math.floor(Math.random() * Math.floor(hitIndexes.length))];
+        const card = this.pilot.damagecards[index];
         card.exposed = true;
         this.mutateCard(card);
         const popover = await this.popoverController.create({
@@ -251,19 +251,19 @@ export class PilotModalPage implements OnInit {
         });
         await popover.present();
       }
-    )
+    );
   }
 
   ngOnInit() {
-    let pilotNum = this.route.snapshot.paramMap.get("pilotNum");
+    const pilotNum = this.route.snapshot.paramMap.get('pilotNum');
     if (pilotNum) {
-      this.pilot = this.state.squadron.pilots.find(pilot => pilot.num == pilotNum);
+      this.pilot = this.state.squadron.pilots.find(pilot => pilot.num === pilotNum);
     }
-    console.log("pilot modal", this.pilot);
+    console.log('pilot modal', this.pilot);
     // Find stats with tokens to display
-    this.shields = this.pilot.stats.find((stat) => stat.type == 'shields');
-    this.charges = this.pilot.stats.find((stat) => stat.type == 'charges');
-    this.force = this.pilot.stats.find((stat) => stat.type == 'force');
+    this.shields = this.pilot.stats.find((stat) => stat.type === 'shields');
+    this.charges = this.pilot.stats.find((stat) => stat.type === 'charges');
+    this.force = this.pilot.stats.find((stat) => stat.type === 'force');
 
     this.fillManeuverChart(this.pilot.ship.dial);
 
@@ -283,48 +283,48 @@ export class PilotModalPage implements OnInit {
     // Fill maneuver chart
     // map is for middle letter of maneuver code
     // 2NB would be 2 bank left blue
-    let map: any = {
-      "O" : { name: "stop", index: 2 },
-      "F" : { name: "straight", index: 2 },
-      "B" : { name: "bankleft", index: 1 },
-      "N" : { name: "bankright", index: 3 },
-      "T" : { name: "turnleft", index: 0 },
-      "Y" : { name: "turnright", index: 4 },
-      "K" : { name: "kturn", index: 5 },
-      "S" : { name: "reversestraight", index: 2 },
-      "E" : { name: "trollleft", index: 5 },
-      "R" : { name: "trollright", index: 6 },
-      "L" : { name: "sloopleft", index: 5 },
-      "P" : { name: "sloopright", index: 6 },
-      "A" : { name: "reversebankleft", index: 1 },
-      "D" : { name: "reversebankright", index: 3 } 
-    }
+    const map: any = {
+      'O' : { name: 'stop', index: 2 },
+      'F' : { name: 'straight', index: 2 },
+      'B' : { name: 'bankleft', index: 1 },
+      'N' : { name: 'bankright', index: 3 },
+      'T' : { name: 'turnleft', index: 0 },
+      'Y' : { name: 'turnright', index: 4 },
+      'K' : { name: 'kturn', index: 5 },
+      'S' : { name: 'reversestraight', index: 2 },
+      'E' : { name: 'trollleft', index: 5 },
+      'R' : { name: 'trollright', index: 6 },
+      'L' : { name: 'sloopleft', index: 5 },
+      'P' : { name: 'sloopright', index: 6 },
+      'A' : { name: 'reversebankleft', index: 1 },
+      'D' : { name: 'reversebankright', index: 3 }
+    };
     for (let i = 0; i < 8; i++) {
-      let speed = (7 - i) - 2;
+      const speed = (7 - i) - 2;
       this.maneuverChart[i] = { speed: speed, maneuvers: new Array(7) };
     }
     dial.forEach(
       (maneuverCode: string) => {
-        let difficulty = "white";
-        if (maneuverCode[2] == 'R') {
-          difficulty = "red"
+        let difficulty = 'white';
+        if (maneuverCode[2] === 'R') {
+          difficulty = 'red';
         }
-        if (maneuverCode[2] == 'B') {
-          difficulty = "blue"
+        if (maneuverCode[2] === 'B') {
+          difficulty = 'blue';
         }
-        let index = map[maneuverCode[1]].index;
-        let name = map[maneuverCode[1]].name;
-        let speed = parseInt(maneuverCode[0]);
-        let row: any = this.maneuverChart.find((row) => row.speed == speed);
-        let maneuver = { name: name, difficulty: difficulty };
+        const index = map[maneuverCode[1]].index;
+        const name = map[maneuverCode[1]].name;
+        const speed = parseInt(maneuverCode[0], 10);
+        const row: any = this.maneuverChart.find((r) => r.speed === speed);
+        const maneuver = { name: name, difficulty: difficulty };
         row.maneuvers[index] = maneuver;
       }
-    )
+    );
   }
 
-  hasManeuvers(row: any) : boolean {
-    let maneuvers = row.maneuvers;
-    for (let cell of maneuvers) {
+  hasManeuvers(row: any): boolean {
+    const maneuvers = row.maneuvers;
+    for (const cell of maneuvers) {
       if (cell) {
         return true;
       }

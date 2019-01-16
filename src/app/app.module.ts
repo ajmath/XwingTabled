@@ -13,7 +13,6 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { XwingDataService } from './services/xwing-data.service';
 import { LayoutService } from './services/layout.service';
-import { FileTransfer } from '@ionic-native/file-transfer/ngx';
 import { HttpProvider } from './providers/http.provider';
 import { HttpAngularProvider } from './providers/http-angular.provider';
 import { HttpNativeProvider } from './providers/http-native.provider';
@@ -30,7 +29,7 @@ import { ModalGuard } from './modal-guard';
   declarations: [
     AppComponent,
   ],
-  entryComponents: [ 
+  entryComponents: [
 
   ],
   imports: [
@@ -58,7 +57,6 @@ import { ModalGuard } from './modal-guard';
     HttpAngularProvider,
     HttpNativeProvider,
     HTTP,
-    FileTransfer,
     ToastController,
     ModalGuard
   ],

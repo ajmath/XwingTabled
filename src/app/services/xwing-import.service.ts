@@ -12,14 +12,14 @@ export class XwingImportService {
 
   injectShipData(pilot: any, faction: string) {
     // Inject ship data into pilot
-    let xwsShip = pilot.ship;
+    const xwsShip = pilot.ship;
     pilot.ship = this.dataService.getShip(faction, pilot.ship);
-    if (pilot.ship != null) {
+    if (pilot.ship !== null) {
       // Inject stats array in pilot root
       pilot.stats = [ ];
       pilot.ship.stats.forEach(
         (stat) => {
-          let statCopy = JSON.parse(JSON.stringify(stat));
+          const statCopy = JSON.parse(JSON.stringify(stat));
           // Future proofing - in case a chassis ever has baked in recurring charge stats
           statCopy.remaining = stat.value;
           if (stat.recovers) {
@@ -27,9 +27,9 @@ export class XwingImportService {
           }
           pilot.stats.push(statCopy);
         }
-      )
+      );
     } else {
-      throw "ERROR: Ship not found - " + xwsShip;
+      throw new Error('ERROR: Ship not found - ' + xwsShip);
     }
   }
 
@@ -37,16 +37,16 @@ export class XwingImportService {
   injectPilotData(pilot: any, faction: string) {
     // Get pilot data and insert it into pilot object
     pilot.pilot = this.dataService.getPilot(faction, pilot.ship.keyname, pilot.id);
-    if (pilot.pilot != null) {
+    if (pilot.pilot !== null) {
       // Creates a stat of { type: statType, remaining: 2, numbers: Array() }
       // for display compatibility
-      let pushStat = (stat, statType) => {
-        let statCopy = JSON.parse(JSON.stringify(stat));
+      const pushStat = (stat, statType) => {
+        const statCopy = JSON.parse(JSON.stringify(stat));
         statCopy.type = statType;
         statCopy.remaining = stat.value;
         statCopy.numbers = Array(stat.numbers);
         pilot.stats.push(statCopy);
-      }
+      };
       // If the pilot has charges, insert it as a stat
       if (pilot.pilot.charges) {
         pushStat(pilot.pilot.charges, 'charges');
@@ -56,53 +56,53 @@ export class XwingImportService {
         pushStat(pilot.pilot.force, 'force');
       }
 
-      pilot.card_text = "";
+      pilot.card_text = '';
       if (pilot.pilot.ability) {
-        pilot.card_text += pilot.pilot.ability + "<br /><br />";
+        pilot.card_text += pilot.pilot.ability + '<br /><br />';
       }
       if (pilot.pilot.text) {
-        pilot.card_text += pilot.pilot.text + "<br /><br />";
+        pilot.card_text += pilot.pilot.text + '<br /><br />';
       }
       if (pilot.pilot.shipAbility && pilot.pilot.shipAbility.text) {
-        pilot.card_text += "<i>" + pilot.pilot.shipAbility.name + "</i>: " +
+        pilot.card_text += '<i>' + pilot.pilot.shipAbility.name + '</i>: ' +
                           pilot.pilot.shipAbility.text;
       }
 
       // Add additional game state variables
-      pilot.damagecards = []; 
+      pilot.damagecards = [];
       pilot.conditions = [];
       pilot.pointsDestroyed = 0;
     } else {
-      throw "ERROR: Pilot not found - " + pilot.id;
+      throw new Error('ERROR: Pilot not found - ' + pilot.id);
     }
   }
 
   mangleUpgradeArray(pilot: any) {
     // Take xws upgrade list {'astromech': ['r2d2']} and mangle it to
     // [ { type: 'astromech', name: 'r2d2', etc... } ]
-    let mangledUpgrades = [ ];
+    const mangledUpgrades = [ ];
     if (pilot.upgrades) {
       Object.entries(pilot.upgrades).forEach(
         ( [upgradeType, upgradeArray ] ) => {
           if (Array.isArray(upgradeArray)) {
             upgradeArray.forEach(
               (upgradeName) => {
-                if (upgradeType == "force" || upgradeType == "force-power") {
-                  upgradeType = "forcepower";
+                if (upgradeType === 'force' || upgradeType === 'force-power') {
+                  upgradeType = 'forcepower';
                 }
                 // Skip hardpoints on T70s for xws exports from raithos.github.io
-                if (upgradeType == "hardpoint") {
+                if (upgradeType === 'hardpoint') {
                   return;
                 }
-                let upgradeData = this.dataService.getUpgrade(upgradeType, upgradeName);
-                if (upgradeData != null) {
+                const upgradeData = this.dataService.getUpgrade(upgradeType, upgradeName);
+                if (upgradeData !== null) {
                   upgradeData['type'] = upgradeType;
                   mangledUpgrades.push(upgradeData);
                 } else {
-                  throw "ERROR: Upgrade not found - " + upgradeName;
+                  throw new Error('ERROR: Upgrade not found - ' + upgradeName);
                 }
               }
-            )
+            );
           }
         }
       );
@@ -119,77 +119,77 @@ export class XwingImportService {
       (side) => {
         // Mangle charges stats
         if (side.charges) {
-          side.charges.type = "charges"
+          side.charges.type = 'charges';
           side.charges.remaining = side.charges.value;
           side.charges.numbers = Array(side.charges.recovers);
         }
         // Mangle force stats
         if (side.force) {
           side.force.numbers = Array(side.force.recovers);
-          side.force.type = "force";
-        } 
+          side.force.type = 'force';
+        }
         // Mangle attack stats
         if (side.attack) {
-          side.attack.type = "attack";
+          side.attack.type = 'attack';
           // Displayed icon should be the attack's icon
           side.attack.icon = side.attack.arc;
         }
 
-        // If side has granted actions that aren't listed as actions, 
+        // If side has granted actions that aren't listed as actions,
         // inject those
         if (!side.actions) {
           side.actions = [ ];
           if (side.grants) {
             side.grants.forEach(
               (grant) => {
-                if (grant['type'] == "action") {
+                if (grant['type'] === 'action') {
                   side.actions.push(grant.value);
                 }
               }
-            )
+            );
           }
         }
       }
-    )
+    );
   }
 
   injectShipBonuses(pilot: any) {
     // Search upgrades for any upgrade that has a 'grant'
     pilot.upgrades.forEach(
       (upgrade) => {
-        let side = upgrade.sides[0];
+        const side = upgrade.sides[0];
         if (side.grants) {
           // Find shield or hull bonuses
-          let grant = side.grants.find((grant) => grant.value == "shields" || grant.value == "hull");
+          const grant = side.grants.find((g) => g.value === 'shields' || g.value === 'hull');
           if (grant) {
             // Find the granted bonus stat on the pilot and add it
-            let stat = pilot.stats.find((element) => element.type == grant.value);
+            let stat = pilot.stats.find((element) => element.type === grant.value);
             if (!stat) {
               stat = {
-                "type": grant.value,
-                "remaining": grant.amount,
-                "value": grant.amount
+                'type': grant.value,
+                'remaining': grant.amount,
+                'value': grant.amount
               };
               pilot.stats.push(stat);
             } else {
               stat.value += grant.amount;
-              stat.remaining = stat.value; 
+              stat.remaining = stat.value;
             }
           }
         }
       }
-    )
+    );
   }
 
   injectForceBonuses(pilot: any) {
     // Add any force bonuses to the pilot, creating a force stat if necessary
     pilot.upgrades.forEach(
       (upgrade) => {
-        let side = upgrade.sides[0];
+        const side = upgrade.sides[0];
         // Find upgrades that have a force bonus
         if (side.force) {
           // Get the pilot's force stat
-          let forceStat = pilot.stats.find((element) => element.type == 'force');
+          let forceStat = pilot.stats.find((element) => element.type === 'force');
           // If no force stat exists, create one
           if (!forceStat) {
             forceStat = { value: 0, recovers: 0, type: 'force', numbers: [] };
@@ -202,24 +202,24 @@ export class XwingImportService {
           forceStat.remaining = forceStat.value;
         }
       }
-    )
+    );
   }
 
   calculatePoints(pilot: any) {
-    let pilotCost = pilot.pilot.cost;
+    const pilotCost = pilot.pilot.cost;
     let upgradeCost = 0;
     pilot.upgrades.forEach(
       (upgrade) => {
         if (upgrade.cost) {
-          if ("value" in upgrade.cost) {
+          if ('value' in upgrade.cost) {
             upgradeCost += upgrade.cost.value;
           }
-          if ("variable" in upgrade.cost) {
-            let statValue = "";
-            if (upgrade.cost.variable == "size") {
+          if ('variable' in upgrade.cost) {
+            let statValue = '';
+            if (upgrade.cost.variable === 'size') {
               statValue = pilot.ship.size;
             } else {
-              statValue = pilot.stats.find((stat) => stat.type == upgrade.cost.variable).value;
+              statValue = pilot.stats.find((stat) => stat.type === upgrade.cost.variable).value;
             }
             upgradeCost += upgrade.cost.values[statValue];
           }
@@ -230,63 +230,63 @@ export class XwingImportService {
   }
 
   processFFG(data: any) {
-    let cost = data.cost;
-    let name = data.name;
-    let faction = data.faction.name;
-    let pilots = [ ];
+    const cost = data.cost;
+    const name = data.name;
+    const faction = data.faction.name;
+    const pilots = [ ];
     data.deck.forEach(
         (pilot) => {
-        let xwsPilot = this.dataService.getXwsFromFFG(pilot.pilot_card.id);
+        const xwsPilot = this.dataService.getXwsFromFFG(pilot.pilot_card.id);
         xwsPilot.points = pilot.cost;
-        let upgrades = { };
+        const upgrades = { };
         pilot.slots.forEach(
             (upgrade) => {
-            let upgradeData = this.dataService.getXwsFromFFG(upgrade.id);
-            if (upgrades[upgradeData.type] == undefined) {
+            const upgradeData = this.dataService.getXwsFromFFG(upgrade.id);
+            if (upgrades[upgradeData.type] === undefined) {
                 upgrades[upgradeData.type] = [ ];
             }
             upgrades[upgradeData.type].push(upgradeData.xws);
             }
-        )
+        );
         xwsPilot.upgrades = upgrades;
         pilots.push(xwsPilot);
         }
     );
-    let squadron = {
+    const squadron = {
         description: data.description,
         faction: data.faction.name.replace(/ /g, '').toLowerCase(),
         name: data.name,
         points: data.cost,
         pilots: pilots
-    }
-    console.log("FFG SquadBuilder response", data);
-    console.log("FFG -> XWS", squadron);
+    };
+    console.log('FFG SquadBuilder response', data);
+    console.log('FFG -> XWS', squadron);
     return this.processXws(squadron);
   }
 
   processYasb(data: any) {
-    let pilots = [ ];
+    const pilots = [ ];
     data.pilots.forEach(
       (pilot) => {
-        let yasbPilot = this.dataService.getYasbPilot(pilot.id);
-        let xwsPilot = { id: yasbPilot.xws, ship: yasbPilot.ship, upgrades: { } };
-        let upgrades = { };
+        const yasbPilot = this.dataService.getYasbPilot(pilot.id);
+        const xwsPilot = { id: yasbPilot.xws, ship: yasbPilot.ship, upgrades: { } };
+        const upgrades = { };
         for (let i = 0; i < pilot.upgrades.length; i++) {
-          let upgrade = pilot.upgrades[i];
-          let hardpointRegex = /\d{3}(\:U\.\-?\d+)/g
-          let hardpoints = upgrade.match(hardpointRegex);
+          const upgrade = pilot.upgrades[i];
+          const hardpointRegex = /\d{3}(\:U\.\-?\d+)/g;
+          const hardpoints = upgrade.match(hardpointRegex);
           let upgradeNum = -1;
           if (hardpoints && hardpoints[0]) {
-            upgradeNum = parseInt(hardpoints[0].split('.')[1]);
+            upgradeNum = parseInt(hardpoints[0].split('.')[1], 10);
             // Upgrade number that grants another slot - push to the end
-            let baseUpgradeNum = hardpoints[0].split(':')[0];
-            pilot.upgrades.push(baseUpgradeNum)
+            const baseUpgradeNum = hardpoints[0].split(':')[0];
+            pilot.upgrades.push(baseUpgradeNum);
           } else {
-            upgradeNum = parseInt(upgrade);
+            upgradeNum = parseInt(upgrade, 10);
           }
-          let yasbUpgrade = this.dataService.getYasbUpgrade(upgradeNum);
+          const yasbUpgrade = this.dataService.getYasbUpgrade(upgradeNum);
           if (yasbUpgrade) {
-            if (upgrades[yasbUpgrade.slot] == undefined) {
+            if (upgrades[yasbUpgrade.slot] === undefined) {
               upgrades[yasbUpgrade.slot] = [ ];
             }
             upgrades[yasbUpgrade.slot].push(yasbUpgrade.xws);
@@ -295,13 +295,13 @@ export class XwingImportService {
         xwsPilot.upgrades = upgrades;
         pilots.push(xwsPilot);
       }
-    )
-    let squadron = {
+    );
+    const squadron = {
       name: data.name,
       faction: data.faction,
       pilots: pilots
     };
-    console.log("YASB squadron", squadron);
+    console.log('YASB squadron', squadron);
     return this.processXws(squadron);
   }
 
@@ -314,7 +314,7 @@ export class XwingImportService {
           this.injectShipData(pilot, squadron.faction);
           this.injectPilotData(pilot, squadron.faction);
           this.mangleUpgradeArray(pilot);
-      
+
           // Process each upgrade card
           pilot.upgrades.forEach(
             (upgrade) => {
@@ -328,7 +328,7 @@ export class XwingImportService {
           this.injectShipBonuses(pilot);
           this.injectForceBonuses(pilot);
         }
-    )
+    );
     squadron.points = squadPoints;
     squadron.pointsDestroyed = 0;
     return squadron;

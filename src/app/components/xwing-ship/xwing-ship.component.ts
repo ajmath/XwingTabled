@@ -6,16 +6,16 @@ import { Component, Input, OnInit } from '@angular/core';
   styleUrls: ['./xwing-ship.component.scss']
 })
 export class XwingShipComponent implements OnInit {
-  @Input() name: string = "";
-
-  static icon_class_template = "xwing-miniatures-ship xwing-miniatures-ship-TEMPLATE";
-  icon_class = "";
-  static name_map = {
-    "tievnsilencer": "tiesilencer",
-    "upsilonclasscommandshuttle": "upsilonclassshuttle",
-    "mg100starfortress": "mg100starfortresssf17"
-  };
   constructor() { }
+
+  static icon_class_template = 'xwing-miniatures-ship xwing-miniatures-ship-TEMPLATE';
+  static name_map = {
+    'tievnsilencer': 'tiesilencer',
+    'upsilonclasscommandshuttle': 'upsilonclassshuttle',
+    'mg100starfortress': 'mg100starfortresssf17'
+  };
+  @Input() name = '';
+  icon_class = '';
 
 
   static getClass(name: string) {

@@ -12,18 +12,18 @@ import { XwingStateService } from '../../services/xwing-state.service';
 })
 export class UpgradeComponent implements OnInit {
   @Input() upgrade: any = { };
-  img_class: string = "img-alt";
-  img_urls: string[] = [ "", "" ];
-  artwork: boolean = true;
+  img_class = 'img-alt';
+  img_urls: string[] = [ '', '' ];
+  artwork = true;
 
-  constructor(public dataService: XwingDataService, 
+  constructor(public dataService: XwingDataService,
               private modalController: ModalController,
               private events: Events,
               public layout: LayoutService,
               public state: XwingStateService) { }
 
   async presentUpgradeModal() {
-    let stateString = JSON.stringify(this.upgrade);
+    const stateString = JSON.stringify(this.upgrade);
     const modal = await this.modalController.create({
       component: UpgradeModalPage,
       componentProps: {
@@ -32,14 +32,14 @@ export class UpgradeComponent implements OnInit {
     });
     await modal.present();
     const { data } = await modal.onWillDismiss();
-    if (stateString != JSON.stringify(this.upgrade)) {
+    if (stateString !== JSON.stringify(this.upgrade)) {
       this.state.snapshot();
     }
   }
 
   ngOnInit() {
-    if (this.upgrade['type'] == "configuration") {
-      this.img_class = "img-alt-config";
+    if (this.upgrade['type'] === 'configuration') {
+      this.img_class = 'img-alt-config';
     }
     for (let i = 0; i < this.upgrade.sides.length; i++) {
       let img_url = null;
@@ -54,7 +54,7 @@ export class UpgradeComponent implements OnInit {
           (url) => {
             this.img_urls[i] = url;
           }
-        )
+        );
       }
     }
   }
