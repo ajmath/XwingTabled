@@ -26,11 +26,11 @@ export class XwingDataService {
   hotlink = true;
 
   // key/filename pairs
-  image_map: any = { };
+  image_map: {[s: string]: string} = { };
 
   // base64urls for native, hotlinks for mobile
 
-  image_urls: any = { };
+  image_urls: {[s: string]: string} = { };
   manifest_url = 'https://raw.githubusercontent.com/jychuah/XwingTabled/master/scripts/manifest.json';
 
   // Json Data
@@ -428,7 +428,7 @@ export class XwingDataService {
     }
     // If an image_url[key] is empty, that means we must load from disk and cache it for later
     const base64url = await this.file.readAsDataURL(this.file.cacheDirectory, this.image_map[key]);
-    this.image_urls[key] = this.sanitizer.bypassSecurityTrustUrl(base64url);
+    this.image_urls[key] = this.sanitizer.bypassSecurityTrustUrl(base64url) as string;
     return this.image_urls[key];
   }
 
