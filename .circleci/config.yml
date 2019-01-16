@@ -30,7 +30,7 @@ jobs:
           command: npm run lint
       - run:
           name: Testing
-          command: npm run test
+          command: npm run ci-test
       - run:
           name: Build
           command: npm run gh-pages

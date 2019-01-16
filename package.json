@@ -11,7 +11,8 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "gh-pages": "ng build --base-href 'https://jychuah.github.io/XwingTabled/' --prod && npx ngh --dir=www/",
-    "ci": "npm run lint && npm run test && npm run gh-pages"
+    "ci-test": "CI_TEST=true ng test --watch=false --code-coverage",
+    "ci": "npm run lint && npm run ci-test && npm run gh-pages"
   },
   "private": true,
   "dependencies": {

@@ -158,7 +158,7 @@ export class XwingDataService {
         } else if (item instanceof Array) {
           // If it's an array, push all values to the back of the unpack queue
           unpack_queue.push(...item.filter((i) => !!i));
-        } else {
+        } else if (item instanceof Object) {
           // If it's a dictionary, unpack all key/value pairs and only push the values
           unpack_queue.push(...Object.values(item).filter((i) => !!i));
         }

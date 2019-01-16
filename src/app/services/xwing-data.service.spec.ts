@@ -19,7 +19,7 @@ describe('XwingDataService', () => {
 
   it('should find all files of a given extension in a json', () => {
     const generated_queue = service.create_file_list(test_manifest, '.json');
-    expect(generated_queue.length).toEqual(10);
+    expect(generated_queue.length).toEqual(11);
   });
 
   it('should mangle names', () => {
