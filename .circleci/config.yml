@@ -34,3 +34,35 @@ jobs:
       - run:
           name: Build
           command: npm run gh-pages
+  deploy:
+    docker:
+      - image: node:10.15
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "72:01:35:dc:6f:b5:73:0c:40:ca:85:f9:ff:95:89:40"
+      - checkout
+      - attach_workspace:
+          at: www
+      - run:
+          name: Install and configure dependencies
+          command: |
+            npm install -g --silent gh-pages@2.0.1
+            git config user.email "ci-build@jychuah.github.io"
+            git config user.name "ci-build"
+      - run:
+          name: Deploy docs to gh-pages branch
+          command: gh-pages --dist www
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master
