@@ -7,10 +7,11 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build-gh-pages": "ng build --base-href 'https://jychuah.github.io/XwingTabled/' --prod",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "gh-pages": "ng build --base-href 'https://jychuah.github.io/XwingTabled/' --prod && npx ngh --dir=www/",
+    "gh-pages": "npm run build-gh-pages && npx ngh --dir=www/",
     "ci-test": "CI_TEST=true ng test --watch=false --code-coverage",
     "ci": "npm run lint && npm run ci-test && npm run gh-pages"
   },

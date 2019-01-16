@@ -33,7 +33,7 @@ jobs:
           command: npm run ci-test
       - run:
           name: Build
-          command: npm run gh-pages
+          command: npm run build-gh-pages
   deploy:
     docker:
       - image: node:10.15
