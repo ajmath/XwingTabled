@@ -12,6 +12,14 @@ export interface PilotStat {
   remaining: number;
 }
 
+export type DamageCardType = 'Pilot'; // TODO add more
+export interface DamageCardDef {
+  type: DamageCardType;
+  title: string;
+  text: string;
+  amount: number;
+}
+
 export interface DamageCard extends DamageCardDef {
   exposed: boolean;
   initials: string;
@@ -21,14 +29,6 @@ export interface ManifestFaction {
   xws: string;
   name: string;
   ffg: number;
-}
-
-export type DamageCardType = 'Pilot'; // TODO add more
-export interface DamageCardDef {
-  type: DamageCardType;
-  title: string;
-  text: string;
-  amount: number;
 }
 
 export interface ManifestDamageDeck {
