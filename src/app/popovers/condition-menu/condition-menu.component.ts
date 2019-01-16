@@ -15,19 +15,19 @@ export class ConditionMenuComponent implements OnInit {
   img_urls: any = { };
   selected_condition: any;
   pilotDamageCards: any[] = [];
-  darksideXws: string = "illshowyouthedarkside"
+  darksideXws = 'illshowyouthedarkside';
 
-  constructor(private dataService: XwingDataService, 
+  constructor(private dataService: XwingDataService,
               public state: XwingStateService,
               private popoverController: PopoverController,
               private toastController: ToastController) { }
 
   async assignCondition() {
-    let existing = this.pilot.conditions.find((condition) => condition.xws == this.selected_condition.xws);
+    const existing = this.pilot.conditions.find((condition) => condition.xws === this.selected_condition.xws);
     if (!existing) {
-      if (this.selected_condition.xws == this.darksideXws && this.selected_condition.pilotDamageCard) {
+      if (this.selected_condition.xws === this.darksideXws && this.selected_condition.pilotDamageCard) {
         this.selected_condition.pilotDamageCard.exposed = true;
-        let index = this.state.damagedeck.indexOf(this.selected_condition.pilotDamageCard);
+        const index = this.state.damagedeck.indexOf(this.selected_condition.pilotDamageCard);
         this.state.damagedeck.splice(index, 1);
       }
       this.pilot.conditions.push(this.selected_condition);
@@ -44,20 +44,20 @@ export class ConditionMenuComponent implements OnInit {
 
   getPilotDamageCards() {
     this.pilotDamageCards = [ ];
-    let pilotCards = this.state.damagedeck.filter(
-      (card) => card['type'] == 'Pilot'
+    const pilotCards = this.state.damagedeck.filter(
+      (card) => card['type'] === 'Pilot'
     );
     pilotCards.forEach(
       (card) => {
-        if (!this.pilotDamageCards.find((existing) => existing.title == card.title)) {
+        if (!this.pilotDamageCards.find((existing) => existing.title === card.title)) {
           this.pilotDamageCards.push(card);
         }
       }
-    )
+    );
   }
   changeEvent(event) {
-    this.selected_condition = this.conditions.find((condition) => condition.xws == event.detail.value);
-    if (this.selected_condition.xws == this.darksideXws) {
+    this.selected_condition = this.conditions.find((condition) => condition.xws === event.detail.value);
+    if (this.selected_condition.xws === this.darksideXws) {
       this.getPilotDamageCards();
     }
   }
@@ -67,13 +67,16 @@ export class ConditionMenuComponent implements OnInit {
   }
 
   ngOnInit() {
+    if (!this.dataService.data) {
+      throw new Error('Illegal state, no data in dataService');
+    }
     this.dataService.data.conditions.forEach(
       (condition) => {
         // Make a copy of each condition object
         // They need to be their own instances for conditions like
         // "I'll Show You the Dark Side" which can have
         // other objects attached to them such as damage cards
-        let conditionObj = JSON.parse(JSON.stringify(condition));
+        const conditionObj = JSON.parse(JSON.stringify(condition));
         this.conditions.push(conditionObj);
         // Load artwork and store using xws as the key
         this.dataService.get_image_by_url(conditionObj.artwork).then(

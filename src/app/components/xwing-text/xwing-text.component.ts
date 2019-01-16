@@ -8,9 +8,9 @@ import { XwingIconComponent } from '../xwing-icon/xwing-icon.component';
 })
 export class XwingTextComponent implements OnInit {
 
-  @Input() text: string = "Test text";
-  icon_html = "<i class='CLASS'></i>"
-  output: string = "";
+  @Input() text = 'Test text';
+  icon_html = '<i class=\'CLASS\'></i>';
+  output = '';
 
   constructor() { }
 
@@ -18,29 +18,29 @@ export class XwingTextComponent implements OnInit {
     text = this.stripNumberBrackets(text);
 
     // Match [Icon]
-    let bracketMatches = text.match(/\[[a-zA-Z\s]*\]/g);
+    const bracketMatches = text.match(/\[[a-zA-Z\s]*\]/g);
 
     if (bracketMatches) {
       bracketMatches.forEach(
         (match) => {
-          let icon = this.icon_html.replace(
-            'CLASS', 
+          const icon = this.icon_html.replace(
+            'CLASS',
             XwingIconComponent.getClass(
               this.stripBrackets(match)
             )
           );
           text = text.replace(match, icon);
         }
-      )
+      );
     }
 
-    text = text.replace("Action:", "<br /><br /><b>Action:</b>");
+    text = text.replace('Action:', '<br /><br /><b>Action:</b>');
 
     return text;
   }
 
   stripNumberBrackets(text: string) {
-    let numberMatches = text.match(/\[[0-9] \[[a-zA-Z\s]*\]\]/g);
+    const numberMatches = text.match(/\[[0-9] \[[a-zA-Z\s]*\]\]/g);
     if (numberMatches) {
       numberMatches.forEach(
         (match) => {

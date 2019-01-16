@@ -24,7 +24,7 @@ describe('XwingIconComponent', () => {
   });
 
   it('should mangle names', () => {
-    expect(XwingIconComponent.mangle("Critical Hit")).toEqual("crit");
-    expect(XwingIconComponent.mangle("Bank Left")).toEqual("bankleft");
+    expect(XwingIconComponent.mangle('Critical Hit')).toEqual('crit');
+    expect(XwingIconComponent.mangle('Bank Left')).toEqual('bankleft');
   });
 });

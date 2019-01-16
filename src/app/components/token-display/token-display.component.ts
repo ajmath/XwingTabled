@@ -1,4 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Chargeable, Remaining } from '../../types';
 
 @Component({
   selector: 'xws-token-display',
@@ -6,19 +7,23 @@ import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
   styleUrls: ['./token-display.component.scss']
 })
 export class TokenDisplayComponent implements OnInit {
-  @Input() name: string;
-  @Input() data: any = { };
+  @Input() name?: string;
+  @Input() data: Chargeable & Remaining = {
+    value: 0,
+    remaining: 0,
+    recovers: 0,
+  };
   @Output() change = new EventEmitter();
 
-  spent = [];
-  available = [];
-  recovers = [];
+  spent: number[] = [];
+  available: number[] = [];
+  recovers: number[] = [];
 
   constructor() { }
 
   makeTokens() {
-    this.available = new Array(this.data.remaining);
-    this.spent = new Array(this.data.value - this.data.remaining);
+    this.available = [ this.data.remaining ];
+    this.spent = [ this.data.value - this.data.remaining ];
     this.change.emit(this.data);
   }
 
@@ -43,5 +48,4 @@ export class TokenDisplayComponent implements OnInit {
   ngOnInit() {
     this.makeTokens();
   }
-
 }

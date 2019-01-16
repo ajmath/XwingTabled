@@ -9,8 +9,8 @@ import { XwingDataService } from '../../services/xwing-data.service';
 export class ConditionPopoverComponent implements OnInit {
   pilot;
   condition;
-  img_url: string = "";
-  
+  img_url = '';
+
   constructor(private popoverController: PopoverController,
               private dataService: XwingDataService) { }
 
@@ -22,7 +22,7 @@ export class ConditionPopoverComponent implements OnInit {
 
   async removeCondition() {
     await this.popoverController.dismiss();
-    let index = this.pilot.conditions.indexOf(this.condition);
+    const index = this.pilot.conditions.indexOf(this.condition);
     if (index > -1) {
       this.pilot.conditions.splice(index, 1);
     }
@@ -34,8 +34,8 @@ export class ConditionPopoverComponent implements OnInit {
       (url) => {
         this.img_url = url;
       }
-    )
-    
+    );
+
   }
 
 }

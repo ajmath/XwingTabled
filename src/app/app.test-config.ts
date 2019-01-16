@@ -9,20 +9,20 @@ import { Events, Platform } from '@ionic/angular';
 import { File } from '@ionic-native/file/ngx';
 import { FileTransfer, FileTransferObject } from '@ionic-native/file-transfer/ngx';
 
-let default_metadata: TestModuleMetadata = {
-  providers: [ 
-    Events, HttpProvider, HttpAngularProvider, 
+const default_metadata: TestModuleMetadata = {
+  providers: [
+    Events, HttpProvider, HttpAngularProvider,
     HttpNativeProvider, Platform, HTTP, File, FileTransfer ],
   imports: [ IonicStorageModule.forRoot(), HttpClientTestingModule ],
   schemas: [],
   declarations: [],
-}
+};
 
-function merge_arrays(one: any[], two: any[]) : any[] {
-  let result = [];
+function merge_arrays(one: any[], two: any[]): any[] {
+  const result: any[] = [];
   if (one) {
     one.forEach(
-      (element) => { result.push(element )}
+      (element) => { result.push(element ); }
     );
   }
   if (two) {
@@ -32,27 +32,27 @@ function merge_arrays(one: any[], two: any[]) : any[] {
           result.push(element);
         }
       }
-    )
+    );
   }
 
   return result;
 }
 
-function merge_metadata(one: TestModuleMetadata, two: TestModuleMetadata) : TestModuleMetadata {
-  let result: TestModuleMetadata = {
+function merge_metadata(one: TestModuleMetadata, two: TestModuleMetadata): TestModuleMetadata {
+  const result: TestModuleMetadata = {
     providers: [],
     imports: [],
     schemas: [],
     declarations: []
-  }
+  };
   Object.entries(result).forEach(
-    ([ key, value ]) => {
-      result[key] = merge_arrays(one[key], two[key])
+    ([ key ]) => {
+      result[key] = merge_arrays(one[key], two[key]);
     }
-  )
+  );
   return result;
 }
 
-export function configureTestbed(metadata: TestModuleMetadata = { }) { 
-  return TestBed.configureTestingModule(merge_metadata(default_metadata, metadata))
+export function configureTestbed(metadata: TestModuleMetadata = { }) {
+  return TestBed.configureTestingModule(merge_metadata(default_metadata, metadata));
 }

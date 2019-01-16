@@ -11,9 +11,9 @@ import { XwingDataService } from '../../services/xwing-data.service';
 export class ConditionComponent implements OnInit {
   @Input() pilot;
   @Input() condition;
-  img_url: string = "";
+  img_url = '';
 
-  constructor(private dataService: XwingDataService, private popoverController : PopoverController) { }
+  constructor(private dataService: XwingDataService, private popoverController: PopoverController) { }
 
   async presentConditionPopover() {
     const popover = await this.popoverController.create({
@@ -31,6 +31,6 @@ export class ConditionComponent implements OnInit {
       (url) => {
         this.img_url = url;
       }
-    )
+    );
   }
 }

@@ -9,7 +9,7 @@ import { XwingStateService } from '../../services/xwing-state.service';
   styleUrls: ['./damage-deck-actions.component.scss']
 })
 export class DamageDeckActionsComponent implements OnInit {
-  constructor(private events: Events, 
+  constructor(private events: Events,
               private toastController: ToastController,
               private popoverController: PopoverController,
               public state: XwingStateService) { }

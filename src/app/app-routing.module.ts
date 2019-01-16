@@ -7,7 +7,7 @@ import { UpgradeModalPage } from './modals/upgrade-modal/upgrade-modal.page';
 const routes: Routes = [
   {
     path: '',
-    loadChildren: './main/main.module#MainPageModule' 
+    loadChildren: './main/main.module#MainPageModule'
   },
   {
     path: 'pilot/:pilotNum',

@@ -22,9 +22,9 @@ import { PhoneUpgradeComponent } from './phone-upgrade/phone-upgrade.component';
     IonicModule
   ],
   declarations: [
-    XwingIconComponent, 
+    XwingIconComponent,
     XwingShipComponent,
-    XwingTextComponent, 
+    XwingTextComponent,
     PilotComponent,
     UpgradeComponent,
     ActionComponent,
@@ -36,10 +36,10 @@ import { PhoneUpgradeComponent } from './phone-upgrade/phone-upgrade.component';
     PhoneUpgradeComponent
   ],
   exports: [
-    XwingIconComponent, 
-    XwingShipComponent, 
-    XwingTextComponent, 
-    PilotComponent, 
+    XwingIconComponent,
+    XwingShipComponent,
+    XwingTextComponent,
+    PilotComponent,
     UpgradeComponent,
     ActionComponent,
     TokenDisplayComponent,

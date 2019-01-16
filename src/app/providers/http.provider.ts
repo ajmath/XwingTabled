@@ -9,11 +9,11 @@ export class HttpProvider {
     public http: HttpNativeProvider | HttpAngularProvider;
 
     constructor(private platform: Platform, private angularHttp: HttpAngularProvider, private nativeHttp: HttpNativeProvider) {
-        let isMobile = this.platform.is('cordova'); 
+        const isMobile = this.platform.is('cordova');
         if (isMobile) {
-            console.log("HttpProvider using nativeHttp");
+            console.log('HttpProvider using nativeHttp');
         } else {
-            console.log("HttpProvider using angularHttp");
+            console.log('HttpProvider using angularHttp');
         }
         this.http = isMobile ? this.nativeHttp : this.angularHttp;
     }

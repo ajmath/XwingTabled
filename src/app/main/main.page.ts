@@ -20,16 +20,16 @@ import { XwingImportService } from '../services/xwing-import.service';
   styleUrls: ['./main.page.scss'],
 })
 export class MainPage implements OnInit {
-  data_progress: number = 0;
-  data_message: string = "X-Wing Tabled";
-  retry_button: boolean = false;
-  retry_button_disabled: boolean = false;
-  data_button: boolean = false;
-  data_button_disabled: boolean = false;
-  image_button: boolean = false;
-  image_button_disabled: boolean = false;
+  data_progress = 0;
+  data_message = 'X-Wing Tabled';
+  retry_button = false;
+  retry_button_disabled = false;
+  data_button = false;
+  data_button_disabled = false;
+  image_button = false;
+  image_button_disabled = false;
 
-  constructor(public modalController: ModalController, 
+  constructor(public modalController: ModalController,
               public dataService: XwingDataService,
               public router: Router,
               public platform: Platform,
@@ -54,22 +54,22 @@ export class MainPage implements OnInit {
   }
 
   ionViewDidEnter() {
-    console.log("Snapshot check");
+    console.log('Snapshot check');
     this.state.snapshotCheck();
   }
 
   async data_event_handler(event: any) {
     this.data_message = event.message;
     this.data_progress = event.progress;
-    if (event.status == "manifest_incomplete") {
+    if (event.status === 'manifest_incomplete') {
       this.data_button = true;
-      this.data_message = "X-Wing Tabled requires a local data update";
+      this.data_message = 'X-Wing Tabled requires a local data update';
     }
-    if (event.status == "data_download_errors") {
+    if (event.status === 'data_download_errors') {
       this.data_button = true;
-      this.data_message = "Some X-Wing data could not be downloaded";
+      this.data_message = 'Some X-Wing data could not be downloaded';
     }
-    if (event.status == "no_data_no_connection") {
+    if (event.status === 'no_data_no_connection') {
       this.retry_button = true;
       this.retry_button_disabled = false;
       const alert = await this.alertController.create({
@@ -77,59 +77,59 @@ export class MainPage implements OnInit {
         message: 'An Internet connection is required to update or download necessary data files the first time X-Wing Tabled runs.',
         buttons: [
           { text: 'Retry',
-            handler: () => { 
+            handler: () => {
               this.ngZone.run(
                 async () => {
                   await this.alertController.dismiss();
                   this.retryDownload();
                 }
-              )
+              );
             }
           },
         ]
       });
       return await alert.present();
     }
-    if (event.status == "loading_images") {
+    if (event.status === 'loading_images') {
       // Disable screen interactions with LoadingController
       const loading = await this.loadingCtrl.create({
-        message: "Loading artwork"
+        message: 'Loading artwork'
       });
       await loading.present();
       // Once the loading screen is present, signal XwingDataService that
       // the controller is present. It will begin image loading sequence.
-      this.events.publish("mainpage", { message : "loading_controller_present" });
+      this.events.publish('mainpage', { message : 'loading_controller_present' });
     }
-    if (event.status == "loading_images_complete") {
+    if (event.status === 'loading_images_complete') {
       try {
         await this.loadingCtrl.dismiss();
       } catch (err) {
 
       }
     }
-    if (event.status == "manifest_current" || event.status == "data_download_complete") {
+    if (event.status === 'manifest_current' || event.status === 'data_download_complete') {
       this.data_button = false;
     }
-    if (event.status == "images_missing") {
-      this.data_message = "X-Wing Tabled needs to download some artwork";
+    if (event.status === 'images_missing') {
+      this.data_message = 'X-Wing Tabled needs to download some artwork';
       this.image_button = true;
     }
-    if (event.status == "images_complete") {
+    if (event.status === 'images_complete') {
       this.image_button = false;
       await this.loadState();
     }
-    if (event.status == "image_download_incomplete") {
+    if (event.status === 'image_download_incomplete') {
       this.image_button = true;
     }
-    if (event.status == "image_download_complete") {
+    if (event.status === 'image_download_complete') {
       await this.loadState();
     }
   }
 
   async loadState() {
-    console.log("Restoring...");
+    console.log('Restoring...');
     await this.state.restoreFromDisk();
-    console.log("Restored!");
+    console.log('Restored!');
     this.toastUndo(this.state.getLastSnapshotTime());
     if (!this.state.squadron) {
       this.presentXwsModal();
@@ -173,14 +173,14 @@ export class MainPage implements OnInit {
             this.ngZone.run(
               () => {
                 this.data_progress = 0;
-                this.data_message = "X-Wing Tabled";
+                this.data_message = 'X-Wing Tabled';
                 this.data_button = false;
                 this.data_button_disabled = false;
                 this.image_button = false;
                 this.image_button_disabled = false;
                 this.dataService.reset();
               }
-            )
+            );
           }
         },
         { text: 'Cancel',
@@ -199,12 +199,12 @@ export class MainPage implements OnInit {
                '<i class="xwing-miniatures-font xwing-miniatures-font-forcecharge"></i>?',
       buttons: [
         { text: 'OK',
-          handler: () => { 
+          handler: () => {
             this.ngZone.run(
               () => {
                 this.state.rechargeAllRecurring();
               }
-            )
+            );
           }
         },
         { text: 'Cancel',
@@ -230,13 +230,13 @@ export class MainPage implements OnInit {
       message: 'This will rewind time to ' + this.state.snapshots[this.state.snapshots.length - 2].time,
       buttons: [
         { text: 'OK',
-          handler: () => { 
+          handler: () => {
             this.ngZone.run(
               () => {
-                let time = this.state.undo();
+                const time = this.state.undo();
                 this.toastUndo(time);
               }
-            )
+            );
           }
         },
         { text: 'Cancel',
@@ -244,17 +244,17 @@ export class MainPage implements OnInit {
           cssClass: 'secondary' }
       ]
     });
-    return await alert.present(); 
+    return await alert.present();
   }
 
- 
+
   async askReset() {
     const alert = await this.alertController.create({
       header: 'Reset all squadrons?',
       message: 'All charges, force and shields will be restored, damage cards shuffled and conditions removed.',
       buttons: [
         { text: 'OK',
-          handler: () => { 
+          handler: () => {
             this.ngZone.run(
               async () => {
                 this.state.resetSquadron();
@@ -265,7 +265,7 @@ export class MainPage implements OnInit {
                 });
                 toast.present();
               }
-            )
+            );
           }
         },
         { text: 'Cancel',
@@ -273,12 +273,13 @@ export class MainPage implements OnInit {
           cssClass: 'secondary' }
       ]
     });
-    return await alert.present(); 
+    return await alert.present();
   }
 
   async toastNotFound(xws: string, xwsType: string) {
     const toast = await this.toastController.create({
-      message: "WARNING: The " + xwsType + " " + xws + " could not be found. Try nuking your local data and downloading the latest XWS Data.",
+      message: `WARNING: The ${xwsType} xws could not be found. ` +
+        `Try nuking your local data and downloading the latest XWS Data.`,
       duration: 5000,
       position: 'bottom'
     });
@@ -295,19 +296,17 @@ export class MainPage implements OnInit {
     });
     await modal.present();
     const { data } = await modal.onWillDismiss();
-    if (!data) return;
+    if (!data) { return; }
     try {
       if (data.ffg) {
-        let url = "https://squadbuilder.fantasyflightgames.com/api/squads/" + data.ffg + "/";
-    
+        const url = 'https://squadbuilder.fantasyflightgames.com/api/squads/' + data.ffg + '/';
+
         this.http.get(url).subscribe(
-          (data) => {
-            this.state.setSquadron(this.importService.processFFG(data))
-          },
+          (d) => this.state.setSquadron(this.importService.processFFG(d)),
           async (error) => {
-            console.log("Unable to get FFG SquadBuilder data", error);
+            console.log('Unable to get FFG SquadBuilder data', error);
             const toast = await this.toastController.create({
-              message: "ERROR: Unable to load FFG Squad",
+              message: 'ERROR: Unable to load FFG Squad',
               duration: 5000,
               position: 'bottom'
             });
@@ -321,7 +320,7 @@ export class MainPage implements OnInit {
         this.state.setSquadron(this.importService.processYasb(data.yasb));
       }
       if (data.xws) {
-        let squadron = data.xws;
+        const squadron = data.xws;
         this.state.setSquadron(this.importService.processXws(squadron));
       }
     } catch (e) {

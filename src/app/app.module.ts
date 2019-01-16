@@ -30,7 +30,7 @@ import { ModalGuard } from './modal-guard';
   declarations: [
     AppComponent,
   ],
-  entryComponents: [ 
+  entryComponents: [
 
   ],
   imports: [
