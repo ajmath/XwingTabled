@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/ajmath/XwingTabled.svg?style=svg)](https://circleci.com/gh/ajmath/XwingTabled)
+
 # X-Wing Tabled
 
 ### ...Because Second Edition has huge cards and too many tokens
@@ -40,7 +42,7 @@ Better yet, if you have a fix or feature, feel free to fork the repo and submit 
 ### Local Data Storage<
 
 This web app caches some data locally, such as card data or your table state.
-This means you will be required to download data on first use or when 
+This means you will be required to download data on first use or when
 new data is released. The advantage is that if you navigate away from
 the app in the middle of the game, you don't have to worry about losing
 your game state.
