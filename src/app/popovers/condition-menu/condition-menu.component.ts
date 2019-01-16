@@ -67,6 +67,9 @@ export class ConditionMenuComponent implements OnInit {
   }
 
   ngOnInit() {
+    if (!this.dataService.data) {
+      throw new Error('Illegal state, no data in dataService');
+    }
     this.dataService.data.conditions.forEach(
       (condition) => {
         // Make a copy of each condition object

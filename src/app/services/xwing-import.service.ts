@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { XwingDataService } from './xwing-data.service';
 import { HttpProvider } from '../providers/http.provider';
+import { SquadronPilot, XwsSquadronPilot, SquadronUpgrade, Upgrade } from '../types';
+import { clone } from '../util/helpers';
 
 @Injectable({
   providedIn: 'root'
@@ -77,37 +79,36 @@ export class XwingImportService {
     }
   }
 
-  mangleUpgradeArray(pilot: any) {
+  mangleUpgradeArray(upgrades: {[s: string]: string[]}): SquadronUpgrade[] {
     // Take xws upgrade list {'astromech': ['r2d2']} and mangle it to
     // [ { type: 'astromech', name: 'r2d2', etc... } ]
-    const mangledUpgrades = [ ];
-    if (pilot.upgrades) {
-      Object.entries(pilot.upgrades).forEach(
-        ( [upgradeType, upgradeArray ] ) => {
-          if (Array.isArray(upgradeArray)) {
-            upgradeArray.forEach(
-              (upgradeName) => {
-                if (upgradeType === 'force' || upgradeType === 'force-power') {
-                  upgradeType = 'forcepower';
-                }
-                // Skip hardpoints on T70s for xws exports from raithos.github.io
-                if (upgradeType === 'hardpoint') {
-                  return;
-                }
-                const upgradeData = this.dataService.getUpgrade(upgradeType, upgradeName);
-                if (upgradeData !== null) {
-                  upgradeData['type'] = upgradeType;
-                  mangledUpgrades.push(upgradeData);
-                } else {
-                  throw new Error('ERROR: Upgrade not found - ' + upgradeName);
-                }
-              }
-            );
-          }
-        }
-      );
+    if (!upgrades) {
+      return [];
     }
-    pilot.upgrades = mangledUpgrades;
+    const mangledUpgrades: SquadronUpgrade[] = [];
+    for (const [upgradeType, upgradeArray ] of Object.entries(upgrades)) {
+      if (!Array.isArray(upgradeArray)) {
+        continue;
+      }
+      for (const upgradeName of upgradeArray) {
+        const type = ['force', 'force-power'].includes(upgradeType) ? 'forcepower' : upgradeType;
+
+        // Skip hardpoints on T70s for xws exports from raithos.github.io
+        if (type === 'hardpoint') {
+          continue;
+        }
+        const upgradeData = this.dataService.getUpgrade(type, upgradeName);
+        if (!upgradeData) {
+          throw new Error('ERROR: Upgrade not found - ' + upgradeName);
+        }
+
+        mangledUpgrades.push({
+          ...clone(upgradeData),
+          type,
+        });
+      }
+    }
+    return mangledUpgrades;
   }
 
   injectUpgradeData(pilot: any, upgrade: any) {
@@ -233,23 +234,31 @@ export class XwingImportService {
     const cost = data.cost;
     const name = data.name;
     const faction = data.faction.name;
-    const pilots = [ ];
+    const pilots: XwsSquadronPilot[] = [ ];
     data.deck.forEach(
         (pilot) => {
-        const xwsPilot = this.dataService.getXwsFromFFG(pilot.pilot_card.id);
-        xwsPilot.points = pilot.cost;
+        const pilotIds = this.dataService.getXwsPilotFromFFG(pilot.pilot_card.id);
+        if (!pilotIds) {
+          throw new Error(`Unable to match FFG pilot to xws: ${pilot.pilot_card.id}`);
+        }
         const upgrades = { };
         pilot.slots.forEach(
             (upgrade) => {
-            const upgradeData = this.dataService.getXwsFromFFG(upgrade.id);
+            const upgradeData = this.dataService.getXwsUpgradeFromFFG(upgrade.id);
+            if (!upgradeData) {
+              throw new Error(`Unable to match FFG upgrade to xws: ${upgrade.id}`);
+            }
             if (upgrades[upgradeData.type] === undefined) {
                 upgrades[upgradeData.type] = [ ];
             }
             upgrades[upgradeData.type].push(upgradeData.xws);
             }
         );
-        xwsPilot.upgrades = upgrades;
-        pilots.push(xwsPilot);
+        pilots.push({
+          ...pilotIds,
+          points: pilot.cost,
+          upgrades,
+        });
         }
     );
     const squadron = {
@@ -265,12 +274,11 @@ export class XwingImportService {
   }
 
   processYasb(data: any) {
-    const pilots = [ ];
+    const pilots: XwsSquadronPilot[] = [ ];
     data.pilots.forEach(
       (pilot) => {
         const yasbPilot = this.dataService.getYasbPilot(pilot.id);
-        const xwsPilot = { id: yasbPilot.xws, ship: yasbPilot.ship, upgrades: { } };
-        const upgrades = { };
+        const upgrades = {};
         for (let i = 0; i < pilot.upgrades.length; i++) {
           const upgrade = pilot.upgrades[i];
           const hardpointRegex = /\d{3}(\:U\.\-?\d+)/g;
@@ -292,8 +300,11 @@ export class XwingImportService {
             upgrades[yasbUpgrade.slot].push(yasbUpgrade.xws);
           }
         }
-        xwsPilot.upgrades = upgrades;
-        pilots.push(xwsPilot);
+        pilots.push({
+          id: yasbPilot.xws,
+          ship: yasbPilot.ship,
+          upgrades,
+        });
       }
     );
     const squadron = {
@@ -301,7 +312,7 @@ export class XwingImportService {
       faction: data.faction,
       pilots: pilots
     };
-    console.log('YASB squadron', squadron);
+    console.log('YASB squadron', JSON.stringify(squadron));
     return this.processXws(squadron);
   }
 
@@ -313,7 +324,7 @@ export class XwingImportService {
         (pilot) => {
           this.injectShipData(pilot, squadron.faction);
           this.injectPilotData(pilot, squadron.faction);
-          this.mangleUpgradeArray(pilot);
+          pilot.upgrades = this.mangleUpgradeArray(pilot);
 
           // Process each upgrade card
           pilot.upgrades.forEach(

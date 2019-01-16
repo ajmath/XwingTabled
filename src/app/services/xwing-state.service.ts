@@ -3,6 +3,7 @@ import { XwingDataService } from './xwing-data.service';
 import { Events } from '@ionic/angular';
 import { Storage } from '@ionic/storage';
 import { ToastController } from '@ionic/angular';
+import { DamageCard } from '../types';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +12,7 @@ export class XwingStateService {
   public initialized = false;
   public squadron: any = { };
   public snapshots: any[ ] = [ ];
-  public damagedeck: any[ ] = [ ];
+  public damagedeck: DamageCard[ ] = [ ];
   public damagediscard: any[ ] = [ ];
 
   constructor(public dataService: XwingDataService,
@@ -176,7 +177,7 @@ export class XwingStateService {
   }
 
   async shuffleDamageDeck() {
-    const newDeck = [ ];
+    const newDeck: DamageCard[] = [ ];
     while (this.damagedeck.length > 0) {
       const index = Math.floor(Math.random() * Math.floor(this.damagedeck.length));
       const card = this.damagedeck[index];
@@ -203,11 +204,11 @@ export class XwingStateService {
     this.shuffleDamageDeck();
   }
 
-  discard(card: any) {
+  discard(card: DamageCard) {
     this.damagediscard.push(card);
   }
 
-  draw() {
+  draw(): DamageCard | undefined {
     return this.damagedeck.shift();
   }
 

@@ -11,7 +11,7 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class UpgradeModalPage implements OnInit {
   upgrade;
-  img_urls: string[] = [ null, null ];
+  img_urls: Array<string|null> = [ null, null ];
 
   constructor(private dataService: XwingDataService,
               public modalController: ModalController,

@@ -30,7 +30,7 @@ export class XwsModalPage implements OnInit {
     }
     const isSquadBuilder = value.includes('https://squadbuilder.fantasyflightgames.com');
     const matchArray = value.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);
-    let uuid = null;
+    let uuid = '';
     if (matchArray && matchArray.length) {
       uuid = matchArray[0];
     }
@@ -60,7 +60,7 @@ export class XwsModalPage implements OnInit {
     if (matchArray && matchArray.length > 0) {
       const squadString = matchArray[0].substring(2).slice(0, -3);
       const pilotStrings = squadString.match(pilotRegex);
-      if (pilotStrings.length > 0) {
+      if (pilotStrings && pilotStrings.length > 0) {
         pilotStrings.forEach(
           (pilotString) => {
             const separatorIndex = pilotString.indexOf(':');
@@ -71,11 +71,11 @@ export class XwsModalPage implements OnInit {
           }
         );
         const squadNameParam = value.match(/sn\=([a-zA-Z\%\d])*/);
-        if (squadNameParam.length > 0) {
+        if (squadNameParam && squadNameParam.length > 0) {
           this.xwsData.yasb.name = decodeURIComponent(squadNameParam[0].split('=')[1]);
         }
         const factionNameParam = value.match(/f\=([a-zA-Z\%\d])*/);
-        if (factionNameParam.length > 0) {
+        if (factionNameParam && factionNameParam.length > 0) {
           this.xwsData.yasb.faction = decodeURIComponent(factionNameParam[0].split('=')[1]).replace(/\s/g, '').toLowerCase();
         }
         return true;

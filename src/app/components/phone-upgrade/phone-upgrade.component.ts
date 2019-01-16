@@ -11,7 +11,7 @@ import { Router } from '@angular/router';
 })
 export class PhoneUpgradeComponent implements OnInit {
   @Input() upgrade: any = { };
-  @Input() pilotNum: number;
+  @Input() pilotNum?: number;
 
   constructor(public dataService: XwingDataService,
               private modalController: ModalController,

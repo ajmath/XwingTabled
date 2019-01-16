@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Platform } from '@ionic/angular';
+import { Platforms } from '@ionic/core';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,7 @@ export class LayoutService {
     constructor(private platform: Platform) {
         const platforms = [ 'android', 'capacitor', 'cordova', 'desktop', 'ipod', 'iphone', 'ipad',
                             'ios', 'phablet', 'tablet', 'electron', 'mobile', 'pwa', 'hybrid' ];
-        this.platforms = platforms.filter(this.platform.is);
+        this.platforms = platforms.filter((p) => this.platform.is(p as Platforms));
     }
 
     getClass() {

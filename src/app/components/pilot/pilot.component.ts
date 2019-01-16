@@ -16,7 +16,7 @@ import { Router } from '@angular/router';
 export class PilotComponent implements OnInit {
   @Input() pilot: any;
   groups: any[][] = [];
-  img_url: string = null;
+  img_url?: string;
   shipData: any;
   pilotData: any;
 

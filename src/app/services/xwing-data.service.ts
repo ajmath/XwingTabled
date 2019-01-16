@@ -4,9 +4,12 @@ import { HttpProvider } from '../providers/http.provider';
 import { Observable, from, onErrorResumeNext, of, zip } from 'rxjs';
 import { concatMap, flatMap, map, tap, catchError } from 'rxjs/operators';
 import { Events } from '@ionic/angular';
+import { FileTransfer, FileTransferObject } from '@ionic-native/file-transfer/ngx';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Platform } from '@ionic/angular';
 import { File } from '@ionic-native/file/ngx';
+import { FactionShipPilot, Manifest, DamageCard, FactionShip, Keyed, Upgrade } from '../types';
+import { clone, arrayFlatMap } from '../util/helpers';
 @Injectable({
   providedIn: 'root'
 })
@@ -17,6 +20,7 @@ export class XwingDataService {
   // Data structure containing filename => json mapping
   progress = 0;
   initialized = false;
+  transfer!: FileTransferObject;
 
   // Should be hotlinked?
   hotlink = true;
@@ -30,7 +34,7 @@ export class XwingDataService {
   manifest_url = 'https://raw.githubusercontent.com/jychuah/XwingTabled/master/scripts/manifest.json';
 
   // Json Data
-  data: any = { };
+  data?: Manifest;
 
   constructor(private storage: Storage, private http: HttpProvider, private events: Events,
               private platform: Platform, private file: File,
@@ -57,7 +61,7 @@ export class XwingDataService {
     this.initialized = false;
     this.image_map = { };
     this.image_urls = { };
-    this.data = { };
+    this.data = undefined;
     await this.storage.clear();
     this.check_manifest();
   }
@@ -86,19 +90,20 @@ export class XwingDataService {
     this.status('manifest_downloading', 'Downloading current manifest...');
     console.log('Downloading from', this.manifest_url);
     this.http.get(this.manifest_url).subscribe(
-      (manifest) => {
-        if (manifest) {
-          this.status('manifest_downloading', 'Downloading current manifest... received!');
-          const new_manifest = manifest;
-          if (!this.data || this.data['version'] !== new_manifest['version']) {
-            this.storage.set('manifest', new_manifest);
-            this.data = new_manifest;
-          }
-          // Our manifest is good to go.
-          this.status('manifest_current', 'Manifest is current.');
-          console.log('X-Wing Json Data', this.data);
-          this.load_images(this.data);
+      (manifest: Manifest) => {
+        if (!manifest) {
+          return;
         }
+        this.status('manifest_downloading', 'Downloading current manifest... received!');
+        const new_manifest = manifest;
+        if (!this.data || this.data['version'] !== new_manifest['version']) {
+          this.storage.set('manifest', new_manifest);
+          this.data = new_manifest;
+        }
+        // Our manifest is good to go.
+        this.status('manifest_current', 'Manifest is current.');
+        console.log('X-Wing Json Data', this.data);
+        this.load_images(this.data);
       },
       (error) => {
         if (this.data) {
@@ -133,53 +138,33 @@ export class XwingDataService {
       );
   }
 
-  create_file_list(manifest: any, extension: string) {
+  create_file_list(manifest: Manifest, extension: string) {
     // "Flatten" a JSON dictionary, keeping only string values with a file extension
-    const unpack_queue = [ ];
-    const download_list = [ ];
-    if (manifest) {
-      // Push the manifest dictionary as the first object
-      unpack_queue.push(manifest);
+    const unpack_queue: any[] = [ ];
+    const download_list: string[] = [];
 
-      // While there are still items to unpack
-      while (unpack_queue.length > 0) {
-        // Dequeue the front item
-        const item = unpack_queue.shift();
+    // Push the manifest dictionary as the first object
+    unpack_queue.push(manifest);
 
-        try {
-          // If the item is a string, see if it matches our extension
-          if (typeof item === 'string') {
-            if (item.endsWith(extension)) {
-              download_list.push(item);
-            }
-          } else if (item instanceof Array) {
-            // If it's an array, push all values to the back of the unpack queue
-            item.forEach(
-              (element) => {
-                if (element === undefined) {
-                  console.log('Empty array element in ', item);
-                } else {
-                  unpack_queue.push(element);
-                }
-              }
-            );
-          } else {
-            // If it's a dictionary, unpack all key/value pairs and only push the values
-            Object.entries(item).forEach(
-              ([ key, value ]) => {
-                if (value === undefined) {
-                  console.log('Empty value in ', item);
-                } else {
-                  unpack_queue.push(value);
-                }
-              }
-            );
-          }
-        } catch (err) {
-          console.log('Error creating file list from manifest', manifest);
-          console.log('Could not unpack', item);
+    // While there are still items to unpack
+    while (unpack_queue.length > 0) {
+      // Dequeue the front item
+      const item = unpack_queue.shift();
+
+      try {
+        // If the item is a string, see if it matches our extension
+        if (typeof item === 'string' && item.endsWith(extension)) {
+          download_list.push(item);
+        } else if (item instanceof Array) {
+          // If it's an array, push all values to the back of the unpack queue
+          unpack_queue.push(...item.filter((i) => !!i));
+        } else {
+          // If it's a dictionary, unpack all key/value pairs and only push the values
+          unpack_queue.push(...Object.values(item).filter((i) => !!i));
         }
-
+      } catch (err) {
+        console.log('Error creating file list from manifest', manifest);
+        console.log('Could not unpack', item);
       }
     }
     return download_list;
@@ -228,19 +213,11 @@ export class XwingDataService {
     this.storage.set(key, value);
   }
 
-  create_data_file_list(manifest: any, extension: string) {
+  create_data_file_list(manifest: Manifest, extension: string) {
     // Create a list of data files to download. Skip ships.json since it no longer
     // exists in xwing-data2
     const files = this.create_file_list(manifest, extension);
-    const filtered = [ ];
-    files.forEach(
-      (item) => {
-        if (item !== 'data/ships/ships.json') {
-          filtered.push(item);
-        }
-      }
-    );
-    return filtered;
+    return files.filter((f) => f !== 'data/ships/ships.json');
   }
 
   url_to_key_name(url: string): string {
@@ -251,7 +228,11 @@ export class XwingDataService {
   }
 
   getDamageDeck() {
-    const deck = [];
+    const deck: DamageCard[] = [];
+    if (!this.data) {
+      return [];
+    }
+
     this.data.damagedecks[0].cards.forEach(
       (card) => {
         for (let i = 0; i < card.amount; i++) {
@@ -261,7 +242,7 @@ export class XwingDataService {
               initials = initials + word[0];
             }
           );
-          deck.push({ title: card.title, type: card.type, text: card.text, initials: initials });
+          deck.push({ ...card, initials, exposed: false, });
         }
       }
     );
@@ -269,118 +250,122 @@ export class XwingDataService {
   }
 
   getCondition(xwsCondition: string) {
-    let conditionObj = null;
-    this.data.conditions.forEach(
-      (condition) => {
-        if (condition.xws === xwsCondition) {
-          conditionObj = JSON.parse(JSON.stringify(condition));
-        }
-      }
-    );
-    return conditionObj;
+    if (!this.data) {
+      return;
+    }
+    const condition = this.data.conditions.find((c) => c.xws === xwsCondition);
+    return condition ? clone(condition) : undefined;
   }
 
-  getPilot(faction: string, xwsShip: string, xwsPilot: string) {
+  getPilot(faction: string, xwsShip: string,
+           xwsPilot: string): FactionShipPilot | undefined {
+    if (!this.data) {
+      return;
+    }
     // Given a faction string and pilot object retrieve object data
     // or return null if it can't be retrieved
     const ship = this.getShip(faction, xwsShip);
-    let pilot = null;
+    if (!ship) {
+      return;
+    }
     if (this.data.shims.xwsPilot[xwsPilot]) {
       xwsPilot = this.data.shims.xwsPilot[xwsPilot];
     }
-    ship.pilots.forEach(
-      (pilotData) => {
-        if (pilotData.xws === xwsPilot) {
-          pilot = pilotData;
-        }
-      }
-    );
-    return JSON.parse(JSON.stringify(pilot));
+    const pilot = ship.pilots.find((p) => p.xws === xwsPilot);
+    return pilot ? clone(pilot) : undefined;
   }
 
-  getXwsFromFFG(id: number) {
-    let pilot = null;
-    this.data.pilots.forEach(
-      (faction) => {
-        Object.entries(faction.ships).forEach(
-          ([ship_key, ship]) => {
-            const shipData = ship['pilots'].find((p) => p.ffg === id);
-            if (shipData) {
-              pilot = { id: shipData.xws, name: shipData.xws, ship: ship['xws'] };
-            }
-          }
-        );
-      }
-    );
-    if (pilot) {
-      return pilot;
+  getXwsPilotFromFFG(id: number): PilotShipIds | undefined {
+    if (!this.data) {
+      return;
     }
-    let upgrade = null;
-    Object.entries(this.data.upgrades).forEach(
-      ([upgrade_type, upgrade_array]) => {
-        const upgradeData = (<Array<any> >upgrade_array).find((u) => u.sides[0].ffg === id);
-        if (upgradeData) {
-          upgrade = { type: upgrade_type, xws: upgradeData.xws };
+    for (const faction of this.data.pilots) {
+      for (const ship of Object.values(faction.ships)) {
+        const shipData = ship.pilots.find((p) => p.ffg === id);
+        if (shipData) {
+          return {
+            id: shipData.xws,
+            name: shipData.xws,
+            ship: ship.xws,
+          };
         }
       }
-    );
-    return upgrade;
+    }
+    return undefined;
+  }
+
+  getXwsUpgradeFromFFG(id: number): UpgradeIds | undefined {
+    if (!this.data) {
+      return;
+    }
+
+    for (const [type, upgrades] of Object.entries(this.data.upgrades)) {
+      const upgradeData = upgrades.find((u) => u.sides[0].ffg === id);
+      if (upgradeData) {
+        return { type, xws: upgradeData.xws };
+      }
+    }
+    return undefined;
   }
 
   getYasbUpgrade(id: number) {
+    if (!this.data) {
+      return;
+    }
+
     const upgrade = this.data.yasb.upgrades[id];
     if (!upgrade) {
       return null;
     }
-    return JSON.parse(JSON.stringify(upgrade));
+    return clone(upgrade);
   }
 
   getYasbPilot(id: number) {
-    const pilot = this.data.yasb.pilots[id];
-    if (!pilot) {
-      return null;
+    if (!this.data) {
+      return;
     }
-    return JSON.parse(JSON.stringify(pilot));
+
+    const pilot = this.data.yasb.pilots[id];
+    return pilot ? clone(pilot) : undefined;
   }
 
-  getShip(faction: string, xwsShip: string) {
+  getShip(faction: string, xwsShip: string): (FactionShip & Keyed) | undefined {
+    if (!this.data) {
+      return;
+    }
+
     if (this.data.shims.xwsShip[xwsShip]) {
       xwsShip = this.data.shims.xwsShip[xwsShip];
     }
-    try {
-      const factionData = this.data.pilots.find((pilotsEntry) => pilotsEntry.faction === faction);
-      const ships = factionData.ships;
-      const ship = ships[xwsShip];
-      // For some reason, xws data in guidokessels data uses different names for
-      // TIE Fighters. For exåmple, tieininterceptor instead of tieinterceptor
-      ship.keyname = xwsShip;
-      return JSON.parse(JSON.stringify(ship));
-    } catch (Error) {
-      return null;
+
+    const factionData = this.data.pilots.find((p) => p.faction === faction);
+    if (!factionData || !factionData.ships || !factionData.ships[xwsShip]) {
+      return;
     }
+    return {
+      ...clone(factionData.ships[xwsShip]),
+      keyname: xwsShip,
+    };
   }
 
   getUpgrade(upgradeType: string, xwsUpgrade: string) {
+    if (!this.data) {
+      return;
+    }
+
     if (this.data.shims.xwsUpgrade[xwsUpgrade]) {
       xwsUpgrade = this.data.shims.xwsUpgrade[xwsUpgrade];
     }
-    try {
-      let foundUpgrade = null;
-      this.data.upgrades[upgradeType].forEach(
-        (upgrade) => {
-          if (upgrade.xws === xwsUpgrade) {
-            foundUpgrade = upgrade;
-          }
-        }
-      );
-      return JSON.parse(JSON.stringify(foundUpgrade));
-    } catch (Error) {
-      return null;
+
+    if (!this.data.upgrades[upgradeType]) {
+      throw new Error(`Invalid upgrade type: ${upgradeType}`);
     }
+    const upgrade = this.data.upgrades[upgradeType].find((u) => u.xws === xwsUpgrade);
+    return upgrade ? clone(upgrade) : undefined;
   }
 
 
-  load_images(manifest: any) {
+  load_images(manifest: Manifest) {
     if (this.hotlink) {
       // If this is running in a desktop browser, then we can simply
       // hotlink to FFG's image CDN
@@ -391,7 +376,7 @@ export class XwingDataService {
     }
   }
 
-  await_mainpage_loading_notification(manifest: any) {
+  await_mainpage_loading_notification(manifest: Manifest) {
     // Wait for the Main Page to verify that the "loading" screen is present
     this.events.subscribe('mainpage', (event) => {
       if (event.message === 'loading_controller_present') {
@@ -405,10 +390,10 @@ export class XwingDataService {
     this.status('loading_images', 'Loading artwork.');
   }
 
-  load_images_from_storage(manifest: any) {
+  load_images_from_storage(manifest: Manifest) {
     // Create a list of image filenames to search for locally
     // from a manifest.
-    const filenames = [ ];
+    const filenames: string[] = [ ];
 
     this.create_file_list(manifest, '.png').forEach(
       (url) => {
@@ -475,7 +460,7 @@ export class XwingDataService {
       );
 
     let done = 0;
-    const missing = [ ];
+    const missing: string[] = [ ];
 
     // Subscribe to the sequence
     zipped.subscribe(
@@ -515,26 +500,16 @@ export class XwingDataService {
     );
   }
 
-  missing_file_list(manifest: any): string[ ] {
+  missing_file_list(manifest: Manifest): string[ ] {
     // Construct a list of missing image files. Missing image
     // files are any .png or .jpg that do not appear in the image_map, which
     // should have been loaded during load_files_from_directory
-    const missing_files = [ ];
-    this.create_file_list(manifest, '.png').forEach(
-      (url) => {
-        if (!this.image_map[this.url_to_key_name(url)]) {
-          missing_files.push(url);
-        }
-      }
-    );
-    this.create_file_list(manifest, '.jpg').forEach(
-      (url) => {
-        if (!this.image_map[this.url_to_key_name(url)]) {
-          missing_files.push(url);
-        }
-      }
-    );
-    return missing_files;
+    return [
+      ...this.create_file_list(manifest, '.png')
+        .filter((u) => !this.image_map[this.url_to_key_name(u)]),
+      ...this.create_file_list(manifest, '.jpg')
+        .filter((u) => !this.image_map[this.url_to_key_name(u)])
+    ];
   }
 
   hotlink_images(manifest: any) {
@@ -560,7 +535,7 @@ export class XwingDataService {
     // Sequentially ownload missing images from FFG image-cdn
 
     // Create a list of images to download
-    const missing = [ ];
+    const missing: string[] = [ ];
     const urls = this.missing_file_list(manifest);
 
     // Create a sequence of ( { urls, fileEntry })
@@ -576,10 +551,7 @@ export class XwingDataService {
         }
       )
     );
-    const zipped = zip(url_obs, file_obs)
-      .pipe(
-        map(([url, fileEntry]) => ({ url, fileEntry })),
-      );
+    const zipped = zip(url_obs, file_obs, (url, fileEntry) => ({ url, fileEntry}));
     let done = 0;
 
     // Subscribe to the downloads
@@ -613,4 +585,15 @@ export class XwingDataService {
       }
     );
   }
+}
+
+export interface PilotShipIds {
+  id: string;
+  name: string;
+  ship: string;
+}
+
+export interface UpgradeIds {
+  type: string;
+  xws: string;
 }

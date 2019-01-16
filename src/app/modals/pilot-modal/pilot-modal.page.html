@@ -16,29 +16,32 @@
 </ion-header>
 <ion-content padding>
   <ion-tabs>
-    <ion-tab tab="tokens">  
+    <ion-tab tab="tokens">
       <div class="pilot-modal">
         <div [class]="'pilot-art-container' + layout.getClass()">
           <img *ngIf="img_url" [src]="img_url" class="pilot-art"/>
           <xwing-text *ngIf="!img_url" [text]="pilot.card_text" class="card-text"></xwing-text>
         </div>
         <div [class]="'token-box' + layout.getClass()">
-            <xws-token-display 
-              *ngIf="shields" 
-              [name]="'shield'" 
-              [data]="shields" 
-              (change)="state.postDamage(pilot)" 
-              class="token-set"></xws-token-display>
-            <xws-token-display 
-              *ngIf="charges" 
-              [name]="'charge'" 
-              [data]="charges" 
-              class="token-set"></xws-token-display>
-            <xws-token-display 
-              *ngIf="force" 
-              [name]="'force'" 
-              [data]="force" 
-              class="token-set"></xws-token-display>
+            <xws-token-display
+              *ngIf="shields"
+              [name]="'shield'"
+              [data]="shields"
+              (change)="state.postDamage(pilot)"
+              class="token-set">
+            </xws-token-display>
+            <xws-token-display
+              *ngIf="charges"
+              [name]="'charge'"
+              [data]="charges"
+              class="token-set">
+            </xws-token-display>
+            <xws-token-display
+              *ngIf="force"
+              [name]="'force'"
+              [data]="force"
+              class="token-set">
+            </xws-token-display>
         </div>
         <ion-button *ngIf="layout.isPhone()" expand="full" (click)="assignIdNumber()">Assign ID Number</ion-button>
       </div>
@@ -64,7 +67,7 @@
         </div>
         <div [class]="'damage-cards' + layout.getClass()">
           <xws-condition *ngFor="let condition of pilot.conditions" [pilot]="pilot" [condition]="condition"></xws-condition>
-          <xws-damage-card *ngFor="let card of pilot.damagecards" [card]="card" [squadron]="squadron"></xws-damage-card> 
+          <xws-damage-card *ngFor="let card of pilot.damagecards" [card]="card" [squadron]="squadron"></xws-damage-card>
         </div>
         <div class="card-expander" *ngIf="layout.getClass() === '-phone-portrait'">
           <ion-toolbar>
@@ -114,13 +117,13 @@
         </div>
       </div>
     </ion-tab>
-  
+
     <ion-tab-bar slot="bottom">
       <ion-tab-button tab="tokens">
         <xwing-icon [name]="'shield'" class="tab-icon"></xwing-icon>
         <ion-label>Tokens</ion-label>
       </ion-tab-button>
-  
+
       <ion-tab-button tab="cards">
         <xwing-icon [name]="'hit'" class="tab-icon"></xwing-icon>
         <ion-label>Cards</ion-label>
@@ -130,7 +133,7 @@
         <xwing-icon [name]="'trollleft'" class="tab-icon"></xwing-icon>
         <ion-label>Maneuver Dial</ion-label>
       </ion-tab-button>
-  
+
     </ion-tab-bar>
   </ion-tabs>
 </ion-content>

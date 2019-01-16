@@ -19,7 +19,7 @@ const default_metadata: TestModuleMetadata = {
 };
 
 function merge_arrays(one: any[], two: any[]): any[] {
-  const result = [];
+  const result: any[] = [];
   if (one) {
     one.forEach(
       (element) => { result.push(element ); }
@@ -46,7 +46,7 @@ function merge_metadata(one: TestModuleMetadata, two: TestModuleMetadata): TestM
     declarations: []
   };
   Object.entries(result).forEach(
-    ([ key, value ]) => {
+    ([ key ]) => {
       result[key] = merge_arrays(one[key], two[key]);
     }
   );

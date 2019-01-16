@@ -13,6 +13,7 @@ import { ModalController } from '@ionic/angular';
 import { LayoutService } from '../../services/layout.service';
 import { ActivatedRoute } from '@angular/router';
 import { faBars } from '@fortawesome/free-solid-svg-icons';
+import { SquadronPilot, DamageCard, PilotStat } from '../../types';
 
 @Component({
   selector: 'app-pilot-modal',
@@ -20,13 +21,13 @@ import { faBars } from '@fortawesome/free-solid-svg-icons';
   styleUrls: ['./pilot-modal.page.scss'],
 })
 export class PilotModalPage implements OnInit {
-  pilot;
-  img_url: string = null;
-  card_text: string = null;
+  pilot!: SquadronPilot & { idNumber?: number };
+  img_url?: string;
+  card_text?: string;
 
-  shields: any = null;
-  charges: any = null;
-  force: any = null;
+  shields?: PilotStat;
+  charges?: PilotStat;
+  force?: PilotStat;
   faBars = faBars;
   expanded = false;
 
@@ -67,6 +68,9 @@ export class PilotModalPage implements OnInit {
 
   recycleAvailable(): boolean {
     const hull = this.pilot.stats.find((stat) => stat.type === 'hull');
+    if (!hull) {
+      throw new Error('Illegal state, no hull for ship');
+    }
     return hull.remaining <= 0 && this.pilot.damagecards.length > 0;
   }
 
@@ -127,9 +131,12 @@ export class PilotModalPage implements OnInit {
   }
 
   async maarekStele() {
-    const cards = [ ];
-    for (let i = 0; i < 3 && this.state.damagedeck.length; i++) {
-      cards.push(this.state.draw());
+    const cards: DamageCard[] = [ ];
+    for (let i = 0; i < 3; i++) {
+      const card = this.state.draw();
+      if (card) {
+        cards.push(card);
+      }
     }
     const popover = await this.popoverController.create({
       component: DamageCardSelectComponent,
@@ -153,7 +160,7 @@ export class PilotModalPage implements OnInit {
   }
 
   async assignCrit() {
-    const cards = [ ];
+    const cards: DamageCard[] = [ ];
     // Fill cards with unique titles from damage deck
     this.state.damagedeck.forEach(
       (draw) => {
@@ -256,8 +263,9 @@ export class PilotModalPage implements OnInit {
 
   ngOnInit() {
     const pilotNum = this.route.snapshot.paramMap.get('pilotNum');
-    if (pilotNum) {
-      this.pilot = this.state.squadron.pilots.find(pilot => pilot.num === pilotNum);
+    this.pilot = this.state.squadron.pilots.find(pilot => pilot.num === pilotNum);
+    if (!this.pilot) {
+      throw new Error('Illegal state, missing pilot for pilot modal');
     }
     console.log('pilot modal', this.pilot);
     // Find stats with tokens to display
